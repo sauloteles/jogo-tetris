@@ -1,0 +1,21 @@
+body{
+    height: 100vh;
+}
+#canvas{
+    height: 400px;
+    width: 200px;
+    display: flex;
+    flex-wrap: wrap;
+
+    border: 1px solid black;
+}
+.peca-1{
+    background-color: cadetblue;
+}
+.quadrado{
+    height: 20px;
+    width: 20px; 
+}
+.linha{
+    display: flex;
+}
