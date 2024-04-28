@@ -1,547 +1,327 @@
-const canvas = document.getElementById('canvas');
-let quadrados;
-let verticalBarra =true;
-let mover = true
-let linha = 0
-let largura = 10;
+class CanvasGame {
+    constructor(IdCanvas) {
+        //variaveis globais ou constructors
+        this.canvas = document.getElementById(IdCanvas)
+        this.ctx = this.canvas.getContext('2d')
+        this.speed = 25;
+        this.isRuning = true;
+        this.listComponents = [];
+        this.component;
+        this.i = true
+        this.componentChoice = Math.floor(Math.random() * 3);
+        this.createComponent = true;
+        this.colisaoX = false;
+        this.listDelete = []
 
-for(let k = 0; k < 200;++k){
-    let quadrado = document.createElement('div');
-    quadrado.setAttribute('class','quadrado ');
-    quadrado.setAttribute('id',k);
 
-    canvas.appendChild(quadrado);
-}
-
-quadrados = Array.from(document.getElementsByClassName('quadrado'))
-
-console.log(quadrados)
-
-class Barra{
-    constructor(cordenada1,cordenada2,cordenada3,cordenada4){
-        this.cordenada1 = cordenada1
-        this.cordenada2 = cordenada2
-        this.cordenada3 = cordenada3
-        this.cordenada4 = cordenada4
-        
-        this.cordenadas = [this.cordenada1,this.cordenada2,this.cordenada3,this.cordenada4]
-        this.cordenadasColisao = this.cordenadas;
-        this.colisaoHorizontal = true;
+        this.init()
 
     }
-    desenhar(){
-        for(let i = 0; i < this.cordenadas.length;++i){
-            quadrados[this.cordenadas[i]].classList.add('peca-1');
-        }
-        if(this.colisaoHorizontal){
-            this.cordenadasColisao = this.cordenadas;
 
-        }else if(!this.colisaoHorizontal){
-            this.cordenadasColisao = [this.cordenadas[3]];
+
+
+    clearCanvas() {
+        this.ctx.beginPath()
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+
+    criarBarra() {
+        return new Barra([{ x: 25, y: 0 }, { x: 50, y: 0, }, { x: 75, y: 0, }, { x: 100, y: 0, }])
+    }
+    criarZ() {
+        return new Z([{ x: 25, y: 0, }, { x: 50, y: 0 }, { x: 50, y: -25, }, { x: 75, y: -25 }]);
+    }
+    criarQuadrado() {
+        return new Component([{ x: 0, y: 0 }, { x: 25, y: 0 }, { x: 0, y: -25 }, { x: 25, y: -25 }])
+    }
+
+
+    drawListComponent(x, y) {
+        this.ctx.fillStyle = 'blue';
+        this.ctx.fillRect(x, y, 25, 25)
+
+    }
+
+    colisaoBorda1() {
+        if (this.component.cordenadas[0].x < 225 && this.component.cordenadas[1].x < 225 && this.component.cordenadas[2].x < 225 && this.component.cordenadas[3].x < 225) {
+            return true;
+        }
+
+    }
+    colisaoBorda2() {
+        if (this.component.cordenadas[0].x > 0 && this.component.cordenadas[1].x > 0 && this.component.cordenadas[2].x > 0 && this.component.cordenadas[3].x > 0) {
+            return true;
+        }
+
+    }
+    confirmCreateComponent() {
+        this.createComponent = true;
+        this.componentChoice = Math.floor(Math.random() * 3)
+        // this.componentChoice = 1
+
+    }
+
+
+    update() {
+        this.clearCanvas()
+        if (this.isRuning) {
+            if (this.createComponent) {
+                console.log(this.componentChoice)
+                switch (this.componentChoice) {
+                    case 0:
+                        this.component = this.criarZ();
+                        break;
+                    case 1:
+                        this.component = this.criarBarra();
+                        break;
+                    case 2:
+                        this.component = this.criarQuadrado();
+                        break;
+                }
+                this.createComponent = false;
             }
-        }
-    moverEsquerda(){
-        if(mover){
-            this.remove()
-            for(let i = 0; i < this.cordenadas.length;++i){
-                this.cordenadas[i] -=1; 
-            }
-        }
-    }
-    moverDireita(){
-        if(mover){
-            this.remove()
-            for(let i = 0; i < this.cordenadas.length;++i){
-                this.cordenadas[i] +=1; 
-            }
-        }
+            this.colisaoX = false;
+            if (this.component.colision()) {
+                this.listComponents.push(this.component.cordenadas);
+                this.component.stop = true;
+                this.colisaoX = true;
+                this.confirmCreateComponent()
 
-    }
-    remove(){
-        for(let i = 0; i < this.cordenadas.length;++i){
-            quadrados[this.cordenadas[i]].classList.remove('peca-1');
-        }
-    }
-    vertical(){
-        if(mover){
-            let aux = this.cordenadas[this.cordenadas.length-1];
-            verticalBarra = false;
-            this.colisaoHorizontal = false;
-            
-            this.remove();
-            for(let i = this.cordenadas.length-1; i >=0 ;--i){
-                this.cordenadas[i] = aux;
-                aux-=10
-            }  
-
-        }
-    }
-    horizontal(){
-        if(mover){
-            let aux = this.cordenadas[this.cordenadas.length-1];
-            verticalBarra = true;
-            this.remove();
-            for(let i = this.cordenadas.length-1; i >=0 ;--i){
-                this.cordenadas[i] = aux;
-                aux-=1
-            }     
-            
-            this.colisaoHorizontal = true;
-            
-        }
-
-    }
-}
-
-class Escadinha{
-    constructor(cordenada1,cordenada2,cordenada3,cordenada4,escadinhaTipo){
-        this.cordenada1 = cordenada1
-        this.cordenada2 = cordenada2
-        this.cordenada3 = cordenada3
-        this.cordenada4 = cordenada4
-        this.escadinhaTipo = escadinhaTipo;
-        
-        this.cordenadas = [this.cordenada1,this.cordenada2,this.cordenada3,this.cordenada4]
-        this.colisaoHorizontal = true;
-
-    }
-    desenhar(){
-        for(let i = 0; i < this.cordenadas.length;++i){
-            quadrados[this.cordenadas[i]].classList.add('peca-1');
-        }
-        if(this.escadinhaTipo){
-            if(this.colisaoHorizontal){
-                this.cordenadasColisao =[this.cordenadas[1],this.cordenadas[2],this.cordenadas[3]] ;
-            }else{
-                this.cordenadasColisao =[this.cordenadas[1],this.cordenadas[3]] 
-            }
-        }else if(!this.escadinhaTipo){
-            if(this.colisaoHorizontal){
-                this.cordenadasColisao =[this.cordenadas[0],this.cordenadas[2],this.cordenadas[3]];
-            }else{
-                this.cordenadasColisao =[this.cordenadas[1],this.cordenadas[3]];
-            }
-        }
-    }
-    moverEsquerda(){
-        if(mover){
-            this.remove()
-            for(let i = 0; i < this.cordenadas.length;++i){
-                this.cordenadas[i] -=1; 
             }
 
-        }
+            if (this.listComponents.length > 0) {
+                if (!this.colisaoX) {
+                    for (let j = 0; j < this.component.cordenadas.length; ++j) {
+                        for (let i = 0; i < this.listComponents.length; ++i) {
+                            for (let k = 0; k < this.listComponents[i].length; ++k) {
+                                if (this.listComponents[i][k].x == this.component.cordenadas[j].x && this.listComponents[i][k].y == this.component.cordenadas[j].y + 25) {
+                                    console.log('colision peça')
 
-    }
-    moverDireita(){
-        if(mover){
-            this.remove()
-            for(let i = 0; i < this.cordenadas.length;++i){
-                this.cordenadas[i] +=1; 
-            }
-        }
+                                    this.listComponents.push(this.component.cordenadas);
+                                    this.component.stop = true;
+                                    i = this.listComponents.length;
+                                    j = this.component.cordenadas.length;
 
-    }
-    remove(){
-        for(let i = 0; i < this.cordenadas.length;++i){
-            quadrados[this.cordenadas[i]].classList.remove('peca-1');
-        }
-    }
-    vertical(){
-        if(mover){
-            this.remove();
-            verticalBarra = false;
-            let aux = this.cordenadas[1];
-            if(this.escadinhaTipo){
-                this.colisaoHorizontal = false
-                this.cordenadas[0] = aux-10;
-                this.cordenadas[2] = aux+1;
-                this.cordenadas[3] = aux+11;                
-            }else if(!this.escadinhaTipo){
-                this.colisaoHorizontal = false
-                this.cordenadas[2] =aux-10;
-                this.cordenadas[3] =aux+9;        
-            }
-        }
-    }
-    horizontal(){
-        if(mover){
-            this.remove();
-            verticalBarra = true;
-            let aux = this.cordenadas[1];
-            if(this.escadinhaTipo){
-                this.colisaoHorizontal = true
-                this.cordenadas[0] = aux-1;
-                this.cordenadas[2] = aux+9;
-                this.cordenadas[3] = aux+8;
-            }else if(!this.escadinhaTipo){
-                this.colisaoHorizontal = true
-                this.cordenadas[2] =aux+10;
-                this.cordenadas[3] =aux+11;        
-            }
-        }
-
-    }
-}
-class Ele{
-    constructor(cordenada1,cordenada2,cordenada3,cordenada4){
-        this.cordenada1 = cordenada1
-        this.cordenada2 = cordenada2
-        this.cordenada3 = cordenada3
-        this.cordenada4 = cordenada4
-        
-        this.cordenadas = [this.cordenada1,this.cordenada2,this.cordenada3,this.cordenada4]
-        this.horizontalBolean = true
-
-        this.verticalBolean = true
-        this.cordenadasColisao = [this.cordenada1,this.cordenada2,this.cordenada3];
-        
-    }
-    desenhar(){
-        for(let i = 0; i < this.cordenadas.length;++i){
-            quadrados[this.cordenadas[i]].classList.add('peca-1');
-        }
-        if(verticalBarra){
-            if(this.horizontalBolean){
-                this.cordenadasColisao = [this.cordenadas[0],this.cordenadas[1],this.cordenadas[2]]
-            }else{
-                this.cordenadasColisao = [this.cordenadas[0],this.cordenadas[1],this.cordenadas[3]]
-            }
-        }else{
-            if(this.verticalBolean){
-                this.cordenadasColisao = [this.cordenadas[2],this.cordenadas[3]]
-            }else{
-                this.cordenadasColisao = [this.cordenadas[2],this.cordenadas[3]]
-            }    
-            
-
-        }
-    }
-    moverEsquerda(){
-        if(mover){
-            this.remove()
-            for(let i = 0; i < this.cordenadas.length;++i){
-                this.cordenadas[i] -=1; 
-            }
-        }
-    }
-
-    moverDireita(){
-        if(mover){
-            this.remove()
-            for(let i = 0; i < this.cordenadas.length;++i){
-                this.cordenadas[i] +=1; 
-            }
-        }
-
-    }
-    remove(){
-        for(let i = 0; i < this.cordenadas.length;++i){
-            quadrados[this.cordenadas[i]].classList.remove('peca-1');
-        }
-    }
-    vertical(){
-        if(mover){
-            let aux = this.cordenadas[1];
-            verticalBarra = false;
-            this.remove();
-            if(this.verticalBolean){
-                this.cordenadas[0] = aux-10 
-                this.cordenadas[2] = aux+10
-                this.cordenadas[3] = this.cordenadas[2]+1
-                this.verticalBolean = false;
-
-            }else{
-                this.cordenadas[0] = aux-10 
-                this.cordenadas[2] = aux+10
-                this.cordenadas[3] = this.cordenadas[0]-1
-                this.verticalBolean = true;
-            }        
-        }
-    }
-    horizontal(){
-        if(mover){
-            let aux = this.cordenadas[1];
-            verticalBarra = true;
-            this.remove();
-            if(this.horizontalBolean){
-                this.cordenadas[0] = aux+1
-                this.cordenadas[2] = aux-1
-                this.cordenadas[3] = this.cordenadas[2]+10
-                this.horizontalBolean = false;
-
-            }else{
-                this.cordenadas[0] = aux-1
-                this.cordenadas[2] = aux+1
-                this.cordenadas[3] = this.cordenadas[2]-10
-                this.horizontalBolean = true;
-
-            }
-  
-        }
-
-    }
-}
-class Quadrado{
-    constructor(cordenada1,cordenada2,cordenada3,cordenada4){
-        this.cordenada1 = cordenada1
-        this.cordenada2 = cordenada2
-        this.cordenada3 = cordenada3
-        this.cordenada4 = cordenada4
-        
-        this.cordenadas = [this.cordenada1,this.cordenada2,this.cordenada3,this.cordenada4]
-        this.cordenadasColisao = [this.cordenadas[2],this.cordenadas[3]]
-
-    }
-    desenhar(){
-        for(let i = 0; i < this.cordenadas.length;++i){
-            quadrados[this.cordenadas[i]].classList.add('peca-1');
-        }
-        this.cordenadasColisao = [this.cordenadas[2],this.cordenadas[3]]
-
-    }
-    moverEsquerda(){
-        if(mover){
-            this.remove()
-            for(let i = 0; i < this.cordenadas.length;++i){
-                this.cordenadas[i] -=1; 
-            }
-
-        }
-
-    }
-    moverDireita(){
-        if(mover){
-            this.remove()
-            for(let i = 0; i < this.cordenadas.length;++i){
-                this.cordenadas[i] +=1; 
-            }
-        }
-    }
-    remove(){
-        for(let i = 0; i < this.cordenadas.length;++i){
-            quadrados[this.cordenadas[i]].classList.remove('peca-1');
-        }
-    }
-   
-}
-class Te{
-    constructor(cordenada1,cordenada2,cordenada3,cordenada4){
-        this.cordenada1 = cordenada1
-        this.cordenada2 = cordenada2
-        this.cordenada3 = cordenada3
-        this.cordenada4 = cordenada4
-        
-        this.cordenadas = [this.cordenada1,this.cordenada2,this.cordenada3,this.cordenada4]
-        this.cordenadasColisao =[this.cordenadas[0],this.cordenadas[1],this.cordenadas[2]];
-        this.horizontalBolean = true;
-        this.verticalBolean = true
-
-    }
-    desenhar(){
-        for(let i = 0; i < this.cordenadas.length;++i){
-            quadrados[this.cordenadas[i]].classList.add('peca-1');
-        }
-        if(verticalBarra){
-            if(this.horizontalBolean){
-                this.cordenadasColisao = [this.cordenadas[0],this.cordenadas[1],this.cordenadas[2]]
-            }else{
-                this.cordenadasColisao = [this.cordenadas[0],this.cordenadas[1],this.cordenadas[3]]               
-            }
-        }else{
-            this.cordenadasColisao = [this.cordenadas[1],this.cordenadas[3]]
-            
-        }
-    }
-    moverEsquerda(){
-        if(mover){
-            this.remove()
-            for(let i = 0; i < this.cordenadas.length;++i){
-                this.cordenadas[i] -=1; 
-            }
-        }
-    }
-    moverDireita(){
-        if(mover){
-            this.remove()
-            for(let i = 0; i < this.cordenadas.length;++i){
-                this.cordenadas[i] +=1; 
-            }
-        }
-
-    }
-    remove(){
-        for(let i = 0; i < this.cordenadas.length;++i){
-            quadrados[this.cordenadas[i]].classList.remove('peca-1');
-        }
-    }
-    vertical(){
-        if(mover){
-            let aux = this.cordenadas[2];
-            verticalBarra = false;
-            this.remove();
-            if(this.verticalBolean){
-                this.cordenadas[0] = aux-10
-                this.cordenadas[1] = aux+10
-                this.cordenadas[3] = aux+1
-                this.verticalBolean = false
-            }else{
-                this.cordenadas[0] = aux-10
-                this.cordenadas[1] = aux+10
-                this.cordenadas[3] = aux-1
-                this.verticalBolean = true
-            }
+                                    this.confirmCreateComponent()
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
 
 
-        }
-    }
-    horizontal(){
-        if(mover){
-            let aux = this.cordenadas[2];
-            verticalBarra = true;
-            this.remove();
-            if(this.horizontalBolean){
-                this.cordenadas[0] = aux-1
-                this.cordenadas[1] = aux+1
-                this.cordenadas[3] = aux+10
-                this.horizontalBolean = false
-            }else{
-                this.cordenadas[0] = aux-1
-                this.cordenadas[1] = aux+1
-                this.cordenadas[3] = aux-10
-                this.horizontalBolean = true
-            }
-            
-        }
+                for (let i = 0; i < this.listComponents.length; ++i) {
+                    for (let j = 0; j < this.listComponents[i].length; ++j) {
+                        let posY = this.listComponents[i][j].y;
+                        for (let k = 0; k < this.listComponents.length; ++k) {
+                            for (let c = 0; c < this.listComponents[k].length; ++c) {
+                                if (posY == this.listComponents[k][c].y) {
+                                    this.listDelete.push({ linha: k, elemnto:this.listComponents[k][c]})
+                                }
+                            }
+                        }
+                        if (this.listDelete.length == 10) {
+                            // for (let i = listDelete[listDelete.length - 1]; i < this.listComponents.length; ++i) {
+                            //     for (let k = 0; k < this.listComponents[i].length; ++k) {
+                            //         this.listComponents[i][k].y += 25
+                            //     }
+                            // }
+                            for (let i = 0; i < this.listDelete.length; ++i) {
+                                let linha = this.listDelete[i].linha;
+                                let elemnto = this.listDelete[i].elemnto;
+                                let index = this.listComponents[linha].indexOf(elemnto);
+                                this.listComponents[linha].splice(index, 1);
+                            }
+                            console.log(this.listDelete)
+                            console.log(this.listComponents)
+                        }
+                        this.listDelete = []
+                    }
+                }
+                for (let i = 0; i < this.listComponents.length; ++i) {
+                    for (let k = 0; k < this.listComponents[i].length; ++k) {
+                        this.drawListComponent(this.listComponents[i][k].x, this.listComponents[i][k].y)
 
-    }
-}
-
-
-let peca;
-function colisaoBase(){
-    if(peca.cordenadas[0] < 190 && peca.cordenadas[1] < 190 && peca.cordenadas[2] < 190  && peca.cordenadas[3] < 190 ){
-        return true;
-    }
-    return false;
-}
-function sistemaPontuacao(){
-    let x = 0
-    let cordenadasLinhas = []
-    for(let i = 0; i < quadrados.length;i+= 10){
-        for(let j = i; j <= i+9;++j){
-            if(quadrados[j].classList[1] == 'peca-1'){
-                ++x;
-                cordenadasLinhas.push(j)
-            }            
-        }
-        if(x == 10){
-            for(let k = 0; k < cordenadasLinhas.length;++k){
-                // canvas.removeChild(quadrados[cordenadasLinhas[k]])
-                quadrados[cordenadasLinhas[k]].classList.remove('peca-1')
-            }
-            for(let j = cordenadasLinhas[9];j >= 0; j-=1){
-                if(quadrados[j].classList.length == 2){
-                    if(quadrados[j+10].classList.length != 2){
-                        quadrados[j].classList.remove('peca-1')
-                        quadrados[j+10].classList.add('peca-1')
-                    }                    
-
+                    }
                 }
             }
+            this.component.drawComponent()
+            if (!this.component.stop) {
+                this.component.move()
+            }
+        } else {
 
         }
-        x = 0
-        cordenadasLinhas = []
     }
-}
-
-function criarBarra(){
-    mover = true;
-    verticalBarra = true;
-    peca = new Barra(3,4,5,6)
-    peca.desenhar()
-
-}
-function criarEscadinha1(){
-    mover = true;
-    verticalBarra = true
-    peca  = new Escadinha(3,4,13,12,true)
-    peca.desenhar()
-}
-function criarEscadinha2(){
-    mover = true;
-    verticalBarra = true
-    peca  = new Escadinha(3,4,14,15,false)
-    peca.desenhar()
-}
-function criarEle1(){
-    mover = true
-    verticalBarra = true
-    peca  = new Ele(13,14,15,5)
-    peca.desenhar()   
-}
-function criarEle2(){
-    mover = true;
-    verticalBarra = true
-    peca  = new Ele(13,14,15,3)
-    peca.desenhar()   
-}
-function criarTe(){
-    mover = true;
-    verticalBarra = true
-    peca  = new Te(13,14,15,4)
-    peca.desenhar()   
-}
-function criarQuadrado(){
-    mover = true;
-    peca  = new Quadrado(3,4,13,14)
-    peca.desenhar()   
-}
-
-criarBarra()
-
-function colisaoPecas(){
-    for(let i = 0; i < peca.cordenadasColisao.length; ++i){
-        if(quadrados[peca.cordenadasColisao[i]+10].classList[1] == 'peca-1'){
-            return false;
+    handleKeyDown(e) {
+        if (e.key === 'ArrowRight' && this.colisaoBorda1()) {
+            this.component.moveRight();
+        } if (e.key === 'ArrowLeft' && this.colisaoBorda2()) {
+            this.component.moveLeft();
+        } if (e.key === 'ArrowUp') {
+            if (this.component.horizontal) {
+                this.component.moveVertical()
+            } else {
+                this.component.moveHorizontal()
+            }
         }
     }
-    return true;
+    addEventListeners() {
+        document.addEventListener("keydown", (e) => this.handleKeyDown(e));
+    }
+    menu() {
+        this.ctx.beginPath()
+        this.ctx.fillStyle = ''
+        this.ctx.fillText('texto', x, y)
+    }
+    init() {
+        this.addEventListeners()
+        this.intervalId = setInterval(() => this.update(), 100)
+    }
+
 }
-setInterval(()=>{
-    if(colisaoBase() && colisaoPecas()){        
-        peca.remove()
-        for(let i = 0; i < peca.cordenadas.length;++i){
-            peca.cordenadas[i] += 10
-        }    
-        sistemaPontuacao()
-        peca.desenhar()  
-    }else{
-        mover = false
-        let x = Math.floor(Math.random() * 6 );
-        if(x == 0) criarBarra();
-        if(x == 1) criarQuadrado();
-        if(x == 2) criarEscadinha2();
-        if(x == 3) criarEscadinha1();
-        if(x == 4) criarEle1();
-        if(x == 5) criarEle2();
-        if(x == 6) criarTe();
+const game = new CanvasGame('canvas')
+
+class Component {
+    constructor(cordenadas) {
+        this.cpx = game.ctx;
+        this.cordenadas = cordenadas
+        this.width = 25;
+        this.color = 'blue';
     }
-},500)
-document.addEventListener('keydown',(e)=>{
-    switch(e.key){
-        case 'ArrowLeft':
-            let esquerda = peca.cordenadas[0] % largura === 0;
-            if(!esquerda) peca.moverEsquerda();
-            break;
-        case 'ArrowRight':
-            let direita = peca.cordenadas[peca.cordenadas.length-1] % largura === largura - 1
-            if(!direita) peca.moverDireita();
-            break;
-        case 'ArrowUp':
-            if(verticalBarra) peca.vertical();
-            else peca.horizontal();
-            break;
+    drawComponent() {
+        this.cpx.fillStyle = 'blue';
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            this.cpx.fillRect(this.cordenadas[i].x, this.cordenadas[i].y, this.width, this.width);
+        }
     }
-})
+
+    moveRight() {
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            this.cordenadas[i].x += 25;
+
+        }
+    }
+    moveLeft() {
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            this.cordenadas[i].x -= 25;
+
+        }
+    }
+    colision() {
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            if (this.cordenadas[i].y > 450) {
+                console.log('quadrado limite y')
+
+                return true;
+            }
+        }
+    }
+    moveHorizontal() {
+        return false;
+    }
+    move() {
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            this.cordenadas[i].y += 25
+        }
+    }
+
+
+}
+class Barra extends Component {
+    constructor(cordenadas) {
+        super(cordenadas);
+        this.cpx = game.ctx;
+        this.width = 25;
+        this.stop = false;
+        this.cordenadas = cordenadas;
+        this.horizontalCordenadas = [{ x: 0, y: 0 }, { x: -25, y: -25 }, { x: -50, y: -50 }, { x: -75, y: -75 }]
+        this.c = 0
+        this.horizontal = true
+        this.colisionX = 450
+    }
+    colision() {
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            if (this.cordenadas[i].y > this.colisionX) {
+                console.log('barra limite y')
+
+                return true;
+            }
+        }
+
+    }
+    moveVertical() {
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            this.cordenadas[i].x += this.horizontalCordenadas[i].x
+            this.cordenadas[i].y += this.horizontalCordenadas[i].y
+        }
+        this.colisionX = 450
+        this.horizontal = false;
+    }
+
+    moveHorizontal() {
+        this.colisionX = 425
+        if (this.cordenadas[2].x == 225) {
+            this.c = 75
+        }
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            this.cordenadas[i].x -= this.horizontalCordenadas[i].x + this.c
+            this.cordenadas[i].y -= this.horizontalCordenadas[i].y
+        }
+        this.c = 0
+        this.horizontal = true;
+    }
+
+}
+
+class Z extends Component {
+    constructor(cordenadas) {
+        super(cordenadas)
+        this.cpx = game.ctx;
+        this.width = 25;
+        this.stop = false;
+        this.horizontalCordenadas = [{ x: 50, y: 0 }, { x: 25, y: -25 }, { x: 0, y: 0 }, { x: -25, y: -25 }]
+        this.verticalCordenadas = [{ x: -50, y: 0 }, { x: -25, y: 25 }, { x: 0, y: 0 }, { x: 25, y: 25 }]
+        this.c = 0
+        this.cordenadas = cordenadas;
+        this.horizontal = true;
+
+    }
+    colision() {
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            if (this.cordenadas[i].y > 450) {
+                console.log('z limite y')
+
+                return true;
+            }
+        }
+    }
+
+    moveVertical() {
+
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            this.cordenadas[i].x += this.horizontalCordenadas[i].x
+            this.cordenadas[i].y += this.horizontalCordenadas[i].y
+        }
+
+        this.horizontal = false;
+
+    }
+    moveHorizontal() {
+        if (this.cordenadas[2].x == 0) {
+            this.c = 25
+        }
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            this.cordenadas[i].x += this.verticalCordenadas[i].x + this.c
+            this.cordenadas[i].y += this.verticalCordenadas[i].y
+        }
+
+        this.c = 0
+        this.horizontal = true;
+
+
+    }
+
+}
