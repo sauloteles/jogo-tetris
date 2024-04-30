@@ -1,6 +1,5 @@
 class CanvasGame {
     constructor(IdCanvas) {
-        //variaveis globais ou constructors
         this.canvas = document.getElementById(IdCanvas)
         this.ctx = this.canvas.getContext('2d')
         this.speed = 25;
@@ -8,7 +7,8 @@ class CanvasGame {
         this.listComponents = [];
         this.component;
         this.i = true
-        this.componentChoice = Math.floor(Math.random() * 3);
+        // this.componentChoice = Math.floor(Math.random() * 4);
+        this.componentChoice = 4
         this.createComponent = true;
         this.colisaoX = false;
         this.listDelete = []
@@ -27,13 +27,25 @@ class CanvasGame {
     }
 
     criarBarra() {
-        return new Barra([{ x: 25, y: 0 }, { x: 50, y: 0, }, { x: 75, y: 0, }, { x: 100, y: 0, }])
+        return new ComponenteI([{ x: 25, y: 0 }, { x: 50, y: 0, }, { x: 75, y: 0, }, { x: 100, y: 0, }])
     }
-    criarZ() {
-        return new Z([{ x: 25, y: 0, }, { x: 50, y: 0 }, { x: 50, y: -25, }, { x: 75, y: -25 }]);
+    criarZ1() {
+        return new ComponenteZ([{ x: 25, y: 0, }, { x: 50, y: 0 }, { x: 50, y: -25, }, { x: 75, y: -25 }]);
+    }
+    criarZ2() {
+        return new ComponenteZ([{ x: 25, y: -25, }, { x: 50, y: -25 }, { x: 50, y: 0, }, { x: 75, y: 0 }]);
     }
     criarQuadrado() {
         return new Component([{ x: 0, y: 0 }, { x: 25, y: 0 }, { x: 0, y: -25 }, { x: 25, y: -25 }])
+    }
+    criarL1() {
+        return new ComponenteL1([{ x: 0, y: -25 }, { x: 0, y: 0 }, { x: 25, y: 0 }, { x: 50, y: 0 }])
+    }
+    criarL2() {
+        return new ComponenteL2([{ x: 0, y: 0 }, { x: 25, y: 0 }, { x: 50, y: 0 }, { x: 50, y: -25 }])
+    }
+    criarT() {
+        return new ComponenteT([{ x: 0, y: 0 }, { x: 25, y: 0 }, { x: 50, y: 0 }, { x: 25, y: -25 }])
     }
 
 
@@ -43,22 +55,11 @@ class CanvasGame {
 
     }
 
-    colisaoBorda1() {
-        if (this.component.cordenadas[0].x < 225 && this.component.cordenadas[1].x < 225 && this.component.cordenadas[2].x < 225 && this.component.cordenadas[3].x < 225) {
-            return true;
-        }
 
-    }
-    colisaoBorda2() {
-        if (this.component.cordenadas[0].x > 0 && this.component.cordenadas[1].x > 0 && this.component.cordenadas[2].x > 0 && this.component.cordenadas[3].x > 0) {
-            return true;
-        }
-
-    }
     confirmCreateComponent() {
         this.createComponent = true;
-        this.componentChoice = Math.floor(Math.random() * 3)
-        // this.componentChoice = 1
+        // this.componentChoice = Math.floor(Math.random() * 4)
+        this.componentChoice = 4
 
     }
 
@@ -70,13 +71,25 @@ class CanvasGame {
                 console.log(this.componentChoice)
                 switch (this.componentChoice) {
                     case 0:
-                        this.component = this.criarZ();
+                        this.component = this.criarZ1();
                         break;
                     case 1:
                         this.component = this.criarBarra();
                         break;
                     case 2:
                         this.component = this.criarQuadrado();
+                        break;
+                    case 3:
+                        this.component = this.criarZ2();
+                        break;
+                    case 4:
+                        this.component = this.criarL2()
+                        break;
+                    case 5:
+                        this.component = this.criarT();
+                        break;
+                    case 6:
+                        this.component = this.criarL1();
                         break;
                 }
                 this.createComponent = false;
@@ -118,16 +131,11 @@ class CanvasGame {
                         for (let k = 0; k < this.listComponents.length; ++k) {
                             for (let c = 0; c < this.listComponents[k].length; ++c) {
                                 if (posY == this.listComponents[k][c].y) {
-                                    this.listDelete.push({ linha: k, elemnto:this.listComponents[k][c]})
+                                    this.listDelete.push({ linha: k, elemnto: this.listComponents[k][c] })
                                 }
                             }
                         }
                         if (this.listDelete.length == 10) {
-                            // for (let i = listDelete[listDelete.length - 1]; i < this.listComponents.length; ++i) {
-                            //     for (let k = 0; k < this.listComponents[i].length; ++k) {
-                            //         this.listComponents[i][k].y += 25
-                            //     }
-                            // }
                             for (let i = 0; i < this.listDelete.length; ++i) {
                                 let linha = this.listDelete[i].linha;
                                 let elemnto = this.listDelete[i].elemnto;
@@ -136,6 +144,11 @@ class CanvasGame {
                             }
                             console.log(this.listDelete)
                             console.log(this.listComponents)
+                            for (let i = this.listDelete[0].linha; i < this.listComponents.length; ++i) {
+                                for (let k = 0; k < this.listComponents[i].length; ++k) {
+                                    this.listComponents[i][k].y += 25;
+                                }
+                            }
                         }
                         this.listDelete = []
                     }
@@ -156,9 +169,9 @@ class CanvasGame {
         }
     }
     handleKeyDown(e) {
-        if (e.key === 'ArrowRight' && this.colisaoBorda1()) {
+        if (e.key === 'ArrowRight' && this.component.colisaoBorda1()) {
             this.component.moveRight();
-        } if (e.key === 'ArrowLeft' && this.colisaoBorda2()) {
+        } if (e.key === 'ArrowLeft' && this.component.colisaoBorda2()) {
             this.component.moveLeft();
         } if (e.key === 'ArrowUp') {
             if (this.component.horizontal) {
@@ -178,7 +191,7 @@ class CanvasGame {
     }
     init() {
         this.addEventListeners()
-        this.intervalId = setInterval(() => this.update(), 100)
+        this.intervalId = setInterval(() => this.update(), 300)
     }
 
 }
@@ -227,10 +240,28 @@ class Component {
             this.cordenadas[i].y += 25
         }
     }
+    colisaoBorda1() {
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            if (this.cordenadas[i].x > 200) {
+                return false;
+            }
+        }
+        return true;
+
+    }
+    colisaoBorda2() {
+        for (let i = 0; i < this.cordenadas.length; ++i) {
+            if (this.cordenadas[i].x < 25) {
+                return false;
+            }
+        }
+        return true;
+
+    }
 
 
 }
-class Barra extends Component {
+class ComponenteI extends Component {
     constructor(cordenadas) {
         super(cordenadas);
         this.cpx = game.ctx;
@@ -243,13 +274,10 @@ class Barra extends Component {
         this.colisionX = 450
     }
     colision() {
-        for (let i = 0; i < this.cordenadas.length; ++i) {
-            if (this.cordenadas[i].y > this.colisionX) {
-                console.log('barra limite y')
-
-                return true;
-            }
+        if (this.cordenadas[0].y == 475) {
+            return true
         }
+        return false;
 
     }
     moveVertical() {
@@ -274,9 +302,10 @@ class Barra extends Component {
         this.horizontal = true;
     }
 
+
 }
 
-class Z extends Component {
+class ComponenteZ extends Component {
     constructor(cordenadas) {
         super(cordenadas)
         this.cpx = game.ctx;
@@ -300,7 +329,6 @@ class Z extends Component {
     }
 
     moveVertical() {
-
         for (let i = 0; i < this.cordenadas.length; ++i) {
             this.cordenadas[i].x += this.horizontalCordenadas[i].x
             this.cordenadas[i].y += this.horizontalCordenadas[i].y
@@ -322,6 +350,231 @@ class Z extends Component {
         this.horizontal = true;
 
 
+    }
+
+}
+class ComponenteL1 extends Component {
+    constructor(cordenadas) {
+        super(cordenadas);
+        this.cpx = game.ctx;
+        this.width = 25;
+        this.stop = false;
+        this.cordenadas = cordenadas;
+        this.horizontal = true
+        this.horizontal1 = true;
+        this.vertical1 = true;
+
+    }
+    // L([{ x: 0, y: -25 }, { x: 0, y: 0 }, { x: 25, y: 0 }, { x:50, y: 0 }])
+    moveVertical() {
+        if (this.vertical1) {
+            let aux = this.cordenadas[2]
+
+            this.cordenadas[0].x = aux.x - 25
+            this.cordenadas[0].y = aux.y + 25
+            this.cordenadas[1].x = aux.x
+            this.cordenadas[1].y = aux.y + 25
+            this.cordenadas[3].x = aux.x
+            this.cordenadas[3].y = aux.y - 25
+            this.vertical1 = false
+        } else {
+            let aux = this.cordenadas[2]
+            if (this.cordenadas[2].x == 225) {
+                aux.x -= 25
+            }
+
+            this.cordenadas[0].x = aux.x + 25
+            this.cordenadas[0].y = aux.y
+            this.cordenadas[1].x = aux.x
+            this.cordenadas[1].y = aux.y + 25
+            this.cordenadas[3].x = aux.x
+            this.cordenadas[3].y = aux.y + 50
+
+
+            this.vertical1 = true
+        }
+        this.horizontal = false;
+
+    }
+    moveHorizontal() {
+        if (this.horizontal1) {
+            let aux = this.cordenadas[2]
+            if (aux.x == 225) {
+                aux.x -= 25
+            }
+            this.cordenadas[0].x = aux.x + 25
+            this.cordenadas[0].y = aux.y + 25
+            this.cordenadas[1].x = aux.x + 25
+            this.cordenadas[1].y = aux.y
+            this.cordenadas[3].x = aux.x - 25
+            this.cordenadas[3].y = aux.y
+            this.horizontal1 = false
+        } else {
+            let aux = this.cordenadas[2]
+            if (this.cordenadas[2].x == 0) {
+                // aux.x -= 25
+
+                aux.x += 25
+
+            }
+            this.cordenadas[0].x = aux.x - 25
+            this.cordenadas[0].y = aux.y - 25
+            this.cordenadas[1].x = aux.x - 25
+            this.cordenadas[1].y = aux.y
+            this.cordenadas[3].x = aux.x + 25
+            this.cordenadas[3].y = aux.y
+            this.horizontal1 = true
+        }
+
+        this.horizontal = true;
+    }
+
+}
+class ComponenteL2 extends Component {
+    constructor(cordenadas) {
+        super(cordenadas);
+        this.cpx = game.ctx;
+        this.width = 25;
+        this.stop = false;
+        this.cordenadas = cordenadas;
+        this.horizontal = true
+        this.horizontal1 = true;
+        this.vertical1 = true;
+    }
+    // ([{ x: 0, y: 0}, { x: 25, y: 0 }, { x: 50, y: 0 }, { x:50, y: -25}])
+    moveVertical() {
+        if (this.vertical1) {
+            let aux = this.cordenadas[2]
+            if (aux.x == 225) {
+                aux.x -= 25
+            }
+
+            this.cordenadas[0].x = aux.x - 25;
+            this.cordenadas[0].y = aux.y - 25;
+            this.cordenadas[1].x = aux.x;
+            this.cordenadas[1].y = aux.y - 25;
+            this.cordenadas[3].x = aux.x;
+            this.cordenadas[3].y = aux.y + 25;
+            this.vertical1 = false
+        } else {
+            let aux = this.cordenadas[2]
+            console.log(this.cordenadas)
+            if (this.cordenadas[2].x == 225) {
+                aux.x -= 25
+            }
+
+            this.cordenadas[0].x = aux.x        
+            this.cordenadas[0].y = aux.y - 50;
+            this.cordenadas[1].x = aux.x
+            this.cordenadas[1].y = aux.y - 25;
+            this.cordenadas[3].x = aux.x + 25;
+            this.cordenadas[3].y = aux.y
+
+
+            this.vertical1 = true
+        }
+        this.horizontal = false;
+
+    }
+    moveHorizontal() {
+        if (this.horizontal1) {
+            let aux = this.cordenadas[2]
+            if (this.cordenadas[2].x == 225) {
+                aux.x -= 25
+            }
+            this.cordenadas[0].x = aux.x - 25
+            this.cordenadas[0].y = aux.y + 25
+            this.cordenadas[1].x = aux.x - 25
+            this.cordenadas[1].y = aux.y
+            this.cordenadas[3].x = aux.x + 25
+            this.cordenadas[3].y = aux.y
+            this.horizontal1 = false
+            console.log('horizontal 1')
+
+        } else {
+            let aux = this.cordenadas[2]
+            if (this.cordenadas[2].x == 0) {
+                aux.x += 25
+            }
+            this.cordenadas[0].x = aux.x + 25
+            this.cordenadas[0].y = aux.y - 25
+            this.cordenadas[1].x = aux.x - 25
+            this.cordenadas[1].y = aux.y
+            this.cordenadas[3].x = aux.x + 25
+            this.cordenadas[3].y = aux.y
+            console.log('horizontal 2')
+            this.horizontal1 = true
+        }
+
+        this.horizontal = true;
+    }
+}
+
+class ComponenteT extends Component {
+    constructor(cordenadas) {
+        super(cordenadas);
+        this.cpx = game.ctx;
+        this.width = 25;
+        this.stop = false;
+        this.cordenadas = cordenadas;
+        this.horizontal = true
+        this.horizontal1 = true;
+        this.vertical1 = true;
+    }
+
+    moveVertical() {
+        let aux = this.cordenadas[1];
+        if (this.vertical1) {
+            this.cordenadas[0].x = aux.x
+            this.cordenadas[0].y = aux.y - 25
+            this.cordenadas[2].x = aux.x
+            this.cordenadas[2].y = aux.y + 25
+            this.cordenadas[3].x = aux.x - 25
+            this.cordenadas[3].y = aux.y
+
+            this.vertical1 = false;
+        } else {
+            this.cordenadas[0].x = aux.x
+            this.cordenadas[0].y = aux.y - 25
+            this.cordenadas[2].x = aux.x
+            this.cordenadas[2].y = aux.y + 25
+            this.cordenadas[3].x = aux.x + 25
+            this.cordenadas[3].y = aux.y
+            this.vertical1 = true;
+        }
+
+        this.horizontal = false;
+    }
+
+    moveHorizontal() {
+        let aux = this.cordenadas[1];
+        if (this.horizontal1) {
+            if (aux.x == 225) {
+                aux.x -= 25
+            }
+            this.cordenadas[0].x = aux.x - 25
+            this.cordenadas[0].y = aux.y
+            this.cordenadas[2].x = aux.x + 25
+            this.cordenadas[2].y = aux.y
+            this.cordenadas[3].x = aux.x
+            this.cordenadas[3].y = aux.y + 25
+            this.horizontal1 = false;
+
+        } else {
+            if (aux.x == 0) {
+                aux.x += 25
+            }
+            this.cordenadas[0].x = aux.x - 25
+            this.cordenadas[0].y = aux.y
+            this.cordenadas[2].x = aux.x + 25
+            this.cordenadas[2].y = aux.y
+            this.cordenadas[3].x = aux.x
+            this.cordenadas[3].y = aux.y - 25
+            this.horizontal1 = true;
+        }
+
+
+        this.horizontal = true;
     }
 
 }
