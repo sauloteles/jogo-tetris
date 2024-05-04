@@ -7,8 +7,8 @@ class CanvasGame {
         this.listComponents = [];
         this.component;
         this.i = true
-        // this.componentChoice = Math.floor(Math.random() * 4);
-        this.componentChoice = 4
+        this.componentChoice = Math.floor(Math.random() * 7);
+        // this.componentChoice = 4
         this.createComponent = true;
         this.colisaoX = false;
         this.listDelete = []
@@ -55,20 +55,22 @@ class CanvasGame {
 
     }
 
-
     confirmCreateComponent() {
         this.createComponent = true;
-        // this.componentChoice = Math.floor(Math.random() * 4)
-        this.componentChoice = 4
+        this.componentChoice = Math.floor(Math.random() * 7)
+        // this.componentChoice = 4
 
     }
 
 
     update() {
         this.clearCanvas()
+
+
         if (this.isRuning) {
             if (this.createComponent) {
                 console.log(this.componentChoice)
+
                 switch (this.componentChoice) {
                     case 0:
                         this.component = this.criarZ1();
@@ -92,9 +94,12 @@ class CanvasGame {
                         this.component = this.criarL1();
                         break;
                 }
+
                 this.createComponent = false;
             }
             this.colisaoX = false;
+            this.colisaoPeca = false
+
             if (this.component.colision()) {
                 this.listComponents.push(this.component.cordenadas);
                 this.component.stop = true;
@@ -113,6 +118,7 @@ class CanvasGame {
 
                                     this.listComponents.push(this.component.cordenadas);
                                     this.component.stop = true;
+                                    this.colisaoPeca = true;
                                     i = this.listComponents.length;
                                     j = this.component.cordenadas.length;
 
@@ -122,36 +128,53 @@ class CanvasGame {
                             }
                         }
                     }
+
                 }
-
-
-                for (let i = 0; i < this.listComponents.length; ++i) {
-                    for (let j = 0; j < this.listComponents[i].length; ++j) {
-                        let posY = this.listComponents[i][j].y;
-                        for (let k = 0; k < this.listComponents.length; ++k) {
-                            for (let c = 0; c < this.listComponents[k].length; ++c) {
-                                if (posY == this.listComponents[k][c].y) {
-                                    this.listDelete.push({ linha: k, elemnto: this.listComponents[k][c] })
+                if (this.colisaoPeca || this.colisaoX) {
+                    for (let i = 0; i < this.listComponents.length; ++i) {
+                        for (let j = 0; j < this.listComponents[i].length; ++j) {
+                            let posY = this.listComponents[i][j].y;
+                            for (let k = 0; k < this.listComponents.length; ++k) {
+                                for (let c = 0; c < this.listComponents[k].length; ++c) {
+                                    if (posY == this.listComponents[k][c].y) {
+                                        this.listDelete.push({ linha: k, elemnto: this.listComponents[k][c] })
+                                    }
                                 }
                             }
-                        }
-                        if (this.listDelete.length == 10) {
-                            for (let i = 0; i < this.listDelete.length; ++i) {
-                                let linha = this.listDelete[i].linha;
-                                let elemnto = this.listDelete[i].elemnto;
-                                let index = this.listComponents[linha].indexOf(elemnto);
-                                this.listComponents[linha].splice(index, 1);
-                            }
-                            console.log(this.listDelete)
-                            console.log(this.listComponents)
-                            for (let i = this.listDelete[0].linha; i < this.listComponents.length; ++i) {
-                                for (let k = 0; k < this.listComponents[i].length; ++k) {
-                                    this.listComponents[i][k].y += 25;
+                            if (this.listDelete.length == 10) {
+                                for (let i = 0; i < this.listDelete.length; ++i) {
+                                    let linha = this.listDelete[i].linha;
+                                    let elemnto = this.listDelete[i].elemnto;
+                                    let index = this.listComponents[linha].indexOf(elemnto);
+                                    this.listDelete[i].index = index;
+                                    this.listComponents[linha].splice(index, 1);
+                                }
+                                console.log(this.listDelete)
+                                console.log(this.listComponents)
+                                let linha = this.listDelete[0].elemnto.y;
+                                let index = linha -25
+                                for (let i =index; i > 0; i -= 25) {
+                                    let blocoMovido = false
+                                    for (let k = 0; k < this.listComponents.length; ++k) {
+                                        for (let j = 0; j < this.listComponents[k].length; ++j) {
+                                            if (i == this.listComponents[k][j].y) {
+                                                blocoMovido = true;
+                                                this.listComponents[k][j].y = linha;
+
+                                            }
+                                        }
+                                    }
+                                    if (blocoMovido) {
+                                        linha -= 25;
+                                    }
                                 }
                             }
+                            this.listDelete = []
                         }
-                        this.listDelete = []
                     }
+                    
+
+
                 }
                 for (let i = 0; i < this.listComponents.length; ++i) {
                     for (let k = 0; k < this.listComponents[i].length; ++k) {
@@ -159,13 +182,12 @@ class CanvasGame {
 
                     }
                 }
-            }
+
+            } 
             this.component.drawComponent()
             if (!this.component.stop) {
                 this.component.move()
             }
-        } else {
-
         }
     }
     handleKeyDown(e) {
@@ -463,7 +485,7 @@ class ComponenteL2 extends Component {
                 aux.x -= 25
             }
 
-            this.cordenadas[0].x = aux.x        
+            this.cordenadas[0].x = aux.x
             this.cordenadas[0].y = aux.y - 50;
             this.cordenadas[1].x = aux.x
             this.cordenadas[1].y = aux.y - 25;
